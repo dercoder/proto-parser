@@ -8,6 +8,8 @@ use Butschster\ProtoParser\Ast\CommentNode;
 use Butschster\ProtoParser\Ast\FieldDeclNode;
 use Butschster\ProtoParser\Ast\FieldType;
 use Butschster\ProtoParser\Ast\MessageDefNode;
+use Butschster\ProtoParser\Ast\OneofDeclNode;
+use Butschster\ProtoParser\Ast\OneofFieldNode;
 use Butschster\ProtoParser\Ast\OptionDeclNode;
 use Butschster\ProtoParser\Ast\OptionNode;
 use Butschster\ProtoParser\Ast\RpcDeclNode;
@@ -30,6 +32,10 @@ message User {
         max_len: 50
     }];
     string email = 3 [(validate.rules).string.email = true];
+    oneof option {
+        string name = 4;
+        SubMessage sub_message = 9;
+    }
 }
 PROTO,
         );
@@ -39,7 +45,7 @@ PROTO,
 
         $this->assertInstanceOf(MessageDefNode::class, $message);
         $this->assertSame('User', $message->name);
-        $this->assertCount(3, $message->fields);
+        $this->assertCount(4, $message->fields);
 
         // Test id field
         $idField = $message->fields[0];
@@ -86,6 +92,25 @@ PROTO,
             ),
             $emailField->options['validate.rules.string.email'],
         );
+
+        $oneof = $message->fields[3];
+        $this->assertInstanceOf(OneofDeclNode::class, $oneof);
+        $this->assertSame('option', $oneof->name);
+
+        $this->assertCount(2, $oneof->fields);
+
+        $field1 = $oneof->fields[0];
+
+        $this->assertInstanceOf(OneofFieldNode::class, $field1);
+        $this->assertSame('name', $field1->name);
+        $this->assertEquals(new FieldType('string'), $field1->type);
+        $this->assertSame(4, $field1->number);
+
+        $field2 = $oneof->fields[1];
+        $this->assertInstanceOf(OneofFieldNode::class, $field2);
+        $this->assertSame('sub_message', $field2->name);
+        $this->assertEquals(new FieldType('SubMessage'), $field2->type);
+        $this->assertSame(9, $field2->number);
     }
 
     public function testParseServiceWithComplexOption1(): void
