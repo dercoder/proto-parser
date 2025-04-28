@@ -100,7 +100,6 @@ PROTO,
         $this->assertCount(2, $oneof->fields);
 
         $field1 = $oneof->fields[0];
-
         $this->assertInstanceOf(OneofFieldNode::class, $field1);
         $this->assertSame('name', $field1->name);
         $this->assertEquals(new FieldType('string'), $field1->type);
