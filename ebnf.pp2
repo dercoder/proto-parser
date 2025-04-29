@@ -411,25 +411,41 @@ Constant -> {
     $comments = array_filter($children, fn($child) => $child instanceof \Butschster\ProtoParser\Ast\CommentNode);
     $children = array_values(array_filter($children, fn($child) => !$child instanceof \Butschster\ProtoParser\Ast\CommentNode));
 
+    // Get the oneof name, which could be a keyword token or an identifier
+    $oneofName = $children[0];
+
+    // If it's a token object, get its value
+    if ($oneofName instanceof \Phplrt\Contracts\Lexer\TokenInterface) {
+        $oneofName = $oneofName->getValue();
+    }
+
     return new \Butschster\ProtoParser\Ast\OneofDeclNode(
-        name: $children[0]->getValue(),
+        name: $oneofName,
         fields: array_values(array_filter($children, fn($child) => $child instanceof \Butschster\ProtoParser\Ast\OneofFieldNode)),
         options: array_values(array_filter($children, fn($child) => $child instanceof \Butschster\ProtoParser\Ast\OptionDeclNode)),
         comments: array_values($comments),
     );
 }
-    : Comment()* ::T_ONEOF:: <T_IDENTIFIER> ::T_LBRACE:: (OptionDecl() | OneofField())* ::T_RBRACE::
+    : Comment()* ::T_ONEOF:: AnyString() ::T_LBRACE:: (OptionDecl() | OneofField())* ::T_RBRACE::
     ;
 
 #OneofField -> {
+    // Get the field name, which could be a keyword token or an identifier
+    $fieldName = $children[1];
+
+    // If it's a token object, get its value
+    if ($fieldName instanceof \Phplrt\Contracts\Lexer\TokenInterface) {
+        $fieldName = $fieldName->getValue();
+    }
+
     return new \Butschster\ProtoParser\Ast\OneofFieldNode(
         type: $children[0],
-        name: $children[1]->getValue(),
+        name: $fieldName,
         number: (int)$children[2]->getValue(),
         options: isset($children['FieldOptions']) ? $children['FieldOptions'] : []
     );
 }
-    : Type() <T_IDENTIFIER> ::T_EQUALS:: <T_INT_LITERAL> FieldOptions()? ::T_SEMICOLON::
+    : Type() AnyString() ::T_EQUALS:: <T_INT_LITERAL> FieldOptions()? ::T_SEMICOLON::
     ;
 
 #MapFieldDecl -> {
