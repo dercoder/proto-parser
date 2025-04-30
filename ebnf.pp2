@@ -264,7 +264,7 @@ TopLevelDef
             Reserved() |
             Comment()
         )*
-    ::T_RBRACE::
+    ::T_RBRACE:: ::T_SEMICOLON::?
     ;
 
 #FieldDecl -> {
@@ -531,7 +531,7 @@ FieldNames -> {
 }
     : Comment()* ::T_ENUM:: AnyString() ::T_LBRACE::
         (OptionDecl() | EnumField() | Reserved() | InlineComment())*
-    ::T_RBRACE::
+    ::T_RBRACE:: ::T_SEMICOLON::?
     ;
 
 #EnumField -> {
@@ -577,7 +577,7 @@ FieldNames -> {
 }
     : Comment()* ::T_SERVICE:: <T_IDENTIFIER> ::T_LBRACE::
         (OptionDecl() | RpcDecl())*
-    ::T_RBRACE::
+    ::T_RBRACE:: ::T_SEMICOLON::?
     ;
 
 #RpcDecl -> {

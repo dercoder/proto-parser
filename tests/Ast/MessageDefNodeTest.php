@@ -163,4 +163,75 @@ PROTO,
         $this->assertInstanceOf(ReservedNumber::class, $message->fields[2]->ranges[1]);
         $this->assertSame(4, $message->fields[2]->ranges[1]->value);
     }
+
+    public function testParseWithSemicolons(): void
+    {
+        $node = $this->parser->parse(
+            <<<'PROTO'
+syntax = "proto3";
+
+package example;
+
+message Person {
+  enum PhoneType {
+    MOBILE = 0;
+    HOME = 1;
+    WORK = 2;
+  };
+
+  string name = 1;
+  int32 id = 2;
+  string email = 3;
+  string message = 4;
+};
+
+message Car {
+  int32 id = 5;
+  string name = 6;
+  string type = 7;
+};
+PROTO,
+        );
+
+        $this->assertSame('proto3', $node->syntax->syntax);
+        $this->assertSame('example', $node->package->name);
+
+        $person = $node->topLevelDefs[0];
+
+        $this->assertInstanceOf(EnumDefNode::class, $person->enums[0]);
+        $this->assertSame('PhoneType', $person->enums[0]->name);
+        $this->assertCount(3, $person->enums[0]->fields);
+
+        $this->assertSame('Person', $person->name);
+        $this->assertCount(4, $person->fields);
+
+        $this->assertSame('name', $person->fields[0]->name);
+        $this->assertEquals(new FieldType('string'), $person->fields[0]->type);
+        $this->assertSame(1, $person->fields[0]->number);
+
+        $this->assertSame('id', $person->fields[1]->name);
+        $this->assertEquals(new FieldType('int32'), $person->fields[1]->type);
+        $this->assertSame(2, $person->fields[1]->number);
+
+        $this->assertSame('email', $person->fields[2]->name);
+        $this->assertEquals(new FieldType('string'), $person->fields[2]->type);
+        $this->assertSame(3, $person->fields[2]->number);
+
+        $car = $node->topLevelDefs[1];
+
+        $this->assertSame('Car', $car->name);
+        $this->assertCount(3, $car->fields);
+
+        $this->assertSame('id', $car->fields[0]->name);
+        $this->assertEquals(new FieldType('int32'), $car->fields[0]->type);
+        $this->assertSame(5, $car->fields[0]->number);
+
+        $this->assertSame('name', $car->fields[1]->name);
+        $this->assertEquals(new FieldType('string'), $car->fields[1]->type);
+        $this->assertSame(6, $car->fields[1]->number);
+
+        $this->assertSame('type', $car->fields[2]->name);
+        $this->assertEquals(new FieldType('string'), $car->fields[2]->type);
+        $this->assertSame(7, $car->fields[2]->number);
+    }
 }
