@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Butschster\Tests\Ast;
 
 
+use Butschster\ProtoParser\Ast\CommentNode;
 use Butschster\ProtoParser\Ast\FieldType;
 use Butschster\ProtoParser\Ast\OneofDeclNode;
 use Butschster\ProtoParser\Ast\OneofFieldNode;
@@ -117,6 +118,48 @@ PROTO,
                 'test',
             ),
         ], $field->options);
+    }
+
+    public function testOneofFieldWithOptionsAndComments(): void
+    {
+        $node = $this->parser->parse(
+            <<<'PROTO'
+            syntax = "proto3";
+
+            package example;
+
+            // A comment here.
+            message SampleMessage {
+              // Here also a comment about the oneof.
+              oneof test_oneof {
+                // Also a comment about the name field.
+                string name = 4 [deprecated = true]; // Since version 2.5.3
+
+                string type = 5;
+              }
+            }
+            PROTO,
+        );
+
+        $oneof = $node->topLevelDefs[0]->fields[0];
+        $this->assertCount(2, $oneof->fields);
+
+        $field1 = $oneof->fields[0];
+        $this->assertEquals([
+            'deprecated' => new OptionNode(
+                'deprecated',
+                true,
+            ),
+        ], $field1->options);
+
+        $this->assertEquals([
+            new CommentNode('Since version 2.5.3'),
+        ], $field1->comments);
+
+        $this->assertEquals([
+            new CommentNode('Here also a comment about the oneof.'),
+            new CommentNode('Also a comment about the name field.'),
+        ], $oneof->comments);
     }
 
     public function testEmptyOneofDecl(): void

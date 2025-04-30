@@ -426,7 +426,7 @@ Constant -> {
         comments: array_values($comments),
     );
 }
-    : Comment()* ::T_ONEOF:: AnyString() ::T_LBRACE:: (OptionDecl() | OneofField())* ::T_RBRACE::
+    : Comment()* ::T_ONEOF:: AnyString() ::T_LBRACE:: (OptionDecl() | OneofField() | Comment())* ::T_RBRACE::
     ;
 
 #OneofField -> {
@@ -438,14 +438,18 @@ Constant -> {
         $fieldName = $fieldName->getValue();
     }
 
+    $comments = array_filter($children, fn($child) => $child instanceof \Butschster\ProtoParser\Ast\CommentNode);
+    $options = isset($children['FieldOptions']) ? $children['FieldOptions'] : [];
+
     return new \Butschster\ProtoParser\Ast\OneofFieldNode(
         type: $children[0],
         name: $fieldName,
         number: (int)$children[2]->getValue(),
-        options: isset($children['FieldOptions']) ? $children['FieldOptions'] : []
+        options: $options,
+        comments: array_values($comments)
     );
 }
-    : Type() AnyString() ::T_EQUALS:: <T_INT_LITERAL> FieldOptions()? ::T_SEMICOLON::
+    : Type() AnyString() ::T_EQUALS:: <T_INT_LITERAL> FieldOptions()? ::T_SEMICOLON:: Comment()?
     ;
 
 #MapFieldDecl -> {
