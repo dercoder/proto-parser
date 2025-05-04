@@ -16,6 +16,8 @@ final readonly class OneofFieldNode implements NodeInterface
         public int $number,
         /** @var OptionDeclNode[] */
         public array $options = [],
+        /** @var CommentNode[] */
+        public array $comments = [],
     ) {}
 
     public function getIterator(): \Traversable
